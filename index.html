@@ -760,20 +760,6 @@
             40% { transform: translateY(-6px); opacity: 1; }
         }
 
-        /* Image Generation Styles */
-        .generated-image-container:hover .img-overlay {
-            opacity: 1 !important;
-            transform: translateY(0) !important;
-        }
-        .generated-image-container img:hover {
-            transform: scale(1.03);
-        }
-        .img-overlay button:hover {
-            background: var(--accent) !important;
-            color: #000 !important;
-            transform: scale(1.1);
-        }
-
         /* ===== INPUT AREA ===== */
         #inputArea {
             background: var(--bg-panel);
@@ -2107,32 +2093,6 @@ renderer.code = function(code, lang) {
     </div>`;
 };
 
-// Custom renderer for images (with download & frame)
-renderer.image = function(href, title, text) {
-    const safeTitle = title || text || 'nexus_ai_generated_image';
-    const cleanTitle = safeTitle.replace(/[^\w\u0E00-\u0E7F\s]/gi, '').replace(/\s+/g, '_');
-    
-    return `
-    <div class="generated-image-container" style="margin: 18px 0; max-width: 100%; position: relative; animation: fadeUp 0.5s ease;">
-        <div style="position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--border); background: #000; display: inline-block; max-width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-            <img src="${href}" alt="${text}" style="display: block; max-width: 100%; height: auto; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); cursor: zoom-in;" 
-                 onclick="window.open('${href}', '_blank')"
-                 onload="this.parentElement.style.background='none'">
-            
-            <div class="img-overlay" style="position: absolute; top: 12px; right: 12px; display: flex; gap: 8px; opacity: 0; transition: all 0.3s ease;">
-                <button onclick="downloadGeneratedImage('${href}', '${cleanTitle}')" 
-                        style="background: rgba(0,0,0,0.7); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; width: 40px; height: 40px; cursor: pointer; backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; transition: all 0.2s;"
-                        title="ดาวน์โหลดภาพความละเอียดสูง (4K)">
-                    <i class="fa-solid fa-download" style="font-size: 16px;"></i>
-                </button>
-            </div>
-        </div>
-        ${text ? `<div style="font-size: 12px; color: var(--text-muted); margin-top: 8px; padding: 0 4px; font-style: italic;">
-            <i class="fa-solid fa-wand-magic-sparkles" style="margin-right:6px; color: var(--accent);"></i>${text}
-        </div>` : ''}
-    </div>
-    `;
-
 marked.use({ renderer });
 
 function copyCode(id, btn) {
@@ -2145,22 +2105,6 @@ function copyCode(id, btn) {
             btn.innerHTML = '<i class="fa-regular fa-copy"></i> คัดลอก';
         }, 2000);
     });
-}
-
-async function downloadGeneratedImage(url, filename) {
-    try {
-        showToast('กำลังเตรียมไฟล์ภาพความละเอียดสูง...', 'info');
-        const response = await fetch(url);
-        const blob = await response.blob();
-        // Use FileSaver.js (already included)
-        saveAs(blob, filename + '.jpg');
-        showToast('ดาวน์โหลดภาพสำเร็จ!', 'success');
-    } catch (e) {
-        console.error('Download error:', e);
-        showToast('เกิดข้อผิดพลาดในการดาวน์โหลด', 'error');
-        // Fallback: open in new tab
-        window.open(url, '_blank');
-    }
 }
 
 // ===== CHAT SESSIONS =====
