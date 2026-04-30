@@ -2356,17 +2356,28 @@ renderer.code = function(code, lang) {
 };
 
 // Custom image renderer — wrap in styled frame with download button
-renderer.image = function(href, title, text) {
-    const alt = text || title || 'AI Generated Image';
+// Supports both marked v5+ (token object) and older (3 args)
+renderer.image = function(hrefOrToken, title, text) {
+    let href, alt;
+    if (typeof hrefOrToken === 'object' && hrefOrToken !== null) {
+        // marked v9+ passes a token object
+        href = hrefOrToken.href || hrefOrToken.src || '';
+        alt = hrefOrToken.text || hrefOrToken.title || 'AI Generated Image';
+    } else {
+        href = hrefOrToken || '';
+        alt = text || title || 'AI Generated Image';
+    }
     const imgId = 'img_' + Math.random().toString(36).substr(2, 8);
+    const safeAlt = alt.replace(/'/g, '').replace(/"/g, '');
     return `<div class="ai-image-frame">
-        <img id="${imgId}" src="${href}" alt="${alt}" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<div style=\'padding:20px;text-align:center;color:var(--text-muted);font-size:13px;\'><i class=\'fa-solid fa-image-slash\' style=\'font-size:24px;margin-bottom:8px;display:block;\'></i>ไม่สามารถโหลดรูปภาพได้</div>';">
+        <img id="${imgId}" src="${href}" alt="${safeAlt}" loading="lazy" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <div style="display:none;padding:20px;text-align:center;color:var(--text-muted);font-size:13px;flex-direction:column;align-items:center;gap:8px;"><i class="fa-solid fa-image" style="font-size:24px;"></i>ไม่สามารถโหลดรูปภาพได้</div>
         <div class="ai-image-caption">
             <i class="fa-solid fa-palette"></i>
-            <span>${alt}</span>
+            <span>${safeAlt}</span>
             <div class="ai-image-actions">
                 <span class="img-quality-badge">4K</span>
-                <button class="img-download-btn" onclick="downloadAIImage('${imgId}', '${alt.replace(/'/g, '')}')">
+                <button class="img-download-btn" onclick="downloadAIImage('${imgId}', '${safeAlt}')">
                     <i class="fa-solid fa-download"></i> ดาวน์โหลด
                 </button>
             </div>
@@ -3102,24 +3113,64 @@ async function processAI(model, prompt, loadId, chatHistory) {
 }
 
 function renderAIContent(content, modelType) {
+    let html;
     if (modelType === 'image') {
-        return `<div>
+        html = `<div>
             <div style="display:flex;align-items:center;gap:7px;color:var(--accent);font-weight:600;margin-bottom:10px;">
                 <i class="fa-solid fa-palette"></i> ผลลัพธ์รูปภาพ (AI)
             </div>
             <div style="font-size:13px;color:var(--text-secondary);">${marked.parse(content)}</div>
         </div>`;
-    }
-    if (modelType === 'code') {
-        return `<div>
+    } else if (modelType === 'code') {
+        html = `<div>
             <div style="display:flex;align-items:center;gap:7px;color:var(--accent);font-weight:600;margin-bottom:10px;">
                 <i class="fa-solid fa-code"></i> ผลลัพธ์โค้ด (AI)
             </div>
             ${marked.parse(content)}
         </div>`;
+    } else {
+        html = marked.parse(content);
     }
-    // Default: full markdown (images will be wrapped by custom renderer)
-    return marked.parse(content);
+    // Post-process: wrap รูปภาพ <img> ที่ยังไม่อยู่ใน .ai-image-frame ให้มีปุ่มดาวน์โหลด
+    return wrapImagesWithDownload(html);
+}
+
+function wrapImagesWithDownload(html) {
+    // หา <img> tags ที่ยังไม่ถูก wrap ใน .ai-image-frame
+    return html.replace(/<img\s+([^>]*?)\/?>/gi, function(match, attrs) {
+        // ข้ามถ้าอยู่ใน .ai-image-frame แล้ว (ตรวจจาก parent context)
+        // เนื่องจาก regex replace ทำงานทีละครั้ง เราเช็คว่ามี id แล้วหรือยัง (ถ้ามี id แสดงว่า renderer ทำงานแล้ว)
+        if (attrs.includes('id="img_')) return match;
+        
+        // Extract src and alt
+        const srcMatch = attrs.match(/src=["']([^"']+)["']/);
+        const altMatch = attrs.match(/alt=["']([^"']*)["']/);
+        const src = srcMatch ? srcMatch[1] : '';
+        const alt = altMatch ? altMatch[1] : 'AI Generated Image';
+        
+        // ข้ามรูป avatar หรือ icon เล็กๆ
+        if (!src || src.includes('favicon') || src.includes('avatar') || 
+            (attrs.includes('width') && !attrs.includes('width="1024')) ||
+            attrs.includes('style=')) {
+            return match;
+        }
+        
+        const imgId = 'img_' + Math.random().toString(36).substr(2, 8);
+        const safeAlt = alt.replace(/'/g, '').replace(/"/g, '');
+        return `<div class="ai-image-frame">
+            <img id="${imgId}" src="${src}" alt="${safeAlt}" loading="lazy">
+            <div class="ai-image-caption">
+                <i class="fa-solid fa-palette"></i>
+                <span>${safeAlt}</span>
+                <div class="ai-image-actions">
+                    <span class="img-quality-badge">4K</span>
+                    <button class="img-download-btn" onclick="downloadAIImage('${imgId}', '${safeAlt}')">
+                        <i class="fa-solid fa-download"></i> ดาวน์โหลด
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    });
 }
 
 // ===== UI HELPERS =====
