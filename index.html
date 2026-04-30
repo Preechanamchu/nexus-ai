@@ -92,8 +92,12 @@
             flex-direction: column;
             height: 100%;
             z-index: 30;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             flex-shrink: 0;
+        }
+
+        #sidebar.collapsed {
+            margin-left: calc(-1 * var(--sidebar-w));
         }
 
         .sidebar-logo {
@@ -350,13 +354,23 @@
         }
 
         #menuBtn {
-            display: none;
+            display: flex;
             background: none;
-            border: none;
+            border: 1px solid var(--border);
+            border-radius: 8px;
             color: var(--text-secondary);
-            font-size: 18px;
+            font-size: 16px;
             cursor: pointer;
-            padding: 6px;
+            padding: 7px;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        #menuBtn:hover {
+            border-color: var(--border-accent);
+            color: var(--accent);
+            background: rgba(99, 210, 255, 0.06);
         }
 
         .model-select-wrap {
@@ -648,6 +662,53 @@
         .ai-image-caption i {
             color: var(--accent);
             font-size: 11px;
+        }
+
+        /* Download button for images */
+        .ai-image-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .img-download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+            background: rgba(99, 210, 255, 0.1);
+            border: 1px solid var(--border-accent);
+            border-radius: 6px;
+            color: var(--accent);
+            font-size: 11px;
+            font-weight: 600;
+            font-family: var(--font-body);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .img-download-btn:hover {
+            background: rgba(99, 210, 255, 0.2);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 210, 255, 0.15);
+        }
+
+        .img-download-btn i {
+            font-size: 10px;
+            color: var(--accent);
+        }
+
+        .img-quality-badge {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--accent3);
+            background: rgba(52, 211, 153, 0.12);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            border-radius: 4px;
+            padding: 2px 5px;
         }
 
         /* AI response markdown */
@@ -1114,44 +1175,138 @@
 
         #liveOverlay.show { display: flex; }
 
-        .live-orb {
-            width: 140px;
-            height: 140px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 40% 40%, rgba(99, 210, 255, 0.6), rgba(167, 139, 250, 0.3), rgba(7, 11, 20, 0.8));
+        /* ===== FUTURISTIC LIVE ORB ===== */
+        .live-orb-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 48px;
-            color: var(--accent);
-            box-shadow: 0 0 60px rgba(99, 210, 255, 0.2), inset 0 0 40px rgba(99, 210, 255, 0.05);
-            animation: orbPulse 3s infinite ease-in-out;
-            position: relative;
-            /* Extra spinning effect for powerful communication */
         }
 
+        .live-orb {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, 
+                rgba(99, 210, 255, 0.5), 
+                rgba(167, 139, 250, 0.25), 
+                rgba(52, 211, 153, 0.1),
+                rgba(7, 11, 20, 0.9));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: var(--accent);
+            box-shadow: 
+                0 0 40px rgba(99, 210, 255, 0.25),
+                0 0 80px rgba(99, 210, 255, 0.08),
+                inset 0 0 30px rgba(99, 210, 255, 0.1),
+                inset 0 -5px 15px rgba(167, 139, 250, 0.1);
+            animation: orbPulse 3s infinite ease-in-out;
+            position: relative;
+            z-index: 2;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(99, 210, 255, 0.2);
+        }
+
+        /* Ring 1: ใกล้สุด — หมุนเร็ว */
         .live-orb::after {
             content: '';
             position: absolute;
-            inset: -12px;
+            inset: -14px;
             border-radius: 50%;
             border: 2px solid transparent;
-            border-top: 2px solid var(--accent);
-            border-right: 2px solid var(--accent2);
-            animation: orbSpin 1.5s linear infinite;
-            filter: blur(1px);
-            opacity: 0.7;
+            border-top: 2px solid rgba(99, 210, 255, 0.8);
+            border-right: 2px solid rgba(167, 139, 250, 0.6);
+            animation: orbSpin 1.8s linear infinite;
+            filter: blur(0.5px);
         }
 
+        /* Ring 2: กลาง — หมุนสวนทาง */
         .live-orb::before {
             content: '';
             position: absolute;
-            inset: -22px;
+            inset: -26px;
+            border-radius: 50%;
+            border: 1.5px solid transparent;
+            border-bottom: 1.5px solid rgba(52, 211, 153, 0.6);
+            border-left: 1.5px solid rgba(99, 210, 255, 0.3);
+            animation: orbSpin 3.5s linear infinite reverse;
+        }
+
+        /* Ring 3: ไกลสุด — หมุนช้าสุด (via extra element) */
+        .orb-ring-outer {
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 1px dashed rgba(167, 139, 250, 0.25);
+            animation: orbSpin 8s linear infinite;
+            z-index: 1;
+        }
+
+        /* Hexagonal grid overlay — holographic effect */
+        .orb-hex-grid {
+            position: absolute;
+            inset: -38px;
             border-radius: 50%;
             border: 1px solid transparent;
-            border-bottom: 1px solid var(--accent3);
-            animation: orbSpin 4s linear infinite reverse;
-            opacity: 0.4;
+            background: 
+                conic-gradient(
+                    from 0deg,
+                    transparent 0deg, rgba(99, 210, 255, 0.08) 30deg,
+                    transparent 60deg, rgba(167, 139, 250, 0.06) 90deg,
+                    transparent 120deg, rgba(52, 211, 153, 0.05) 150deg,
+                    transparent 180deg, rgba(99, 210, 255, 0.08) 210deg,
+                    transparent 240deg, rgba(167, 139, 250, 0.06) 270deg,
+                    transparent 300deg, rgba(52, 211, 153, 0.05) 330deg,
+                    transparent 360deg
+                );
+            animation: orbSpin 12s linear infinite reverse;
+            z-index: 0;
+        }
+
+        /* Particle dots — floating around the orb */
+        .orb-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: orbParticle 4s infinite ease-in-out;
+            z-index: 3;
+            box-shadow: 0 0 6px rgba(99, 210, 255, 0.5);
+        }
+
+        .orb-particle:nth-child(2) {
+            width: 3px; height: 3px;
+            background: var(--accent2);
+            animation-delay: -1s;
+            animation-duration: 5s;
+            box-shadow: 0 0 6px rgba(167, 139, 250, 0.5);
+        }
+
+        .orb-particle:nth-child(3) {
+            width: 3px; height: 3px;
+            background: var(--accent3);
+            animation-delay: -2.5s;
+            animation-duration: 6s;
+            box-shadow: 0 0 6px rgba(52, 211, 153, 0.5);
+        }
+
+        .orb-particle:nth-child(4) {
+            width: 2px; height: 2px;
+            background: var(--accent);
+            animation-delay: -3.5s;
+            animation-duration: 3.5s;
+            box-shadow: 0 0 4px rgba(99, 210, 255, 0.4);
+        }
+
+        @keyframes orbParticle {
+            0%   { transform: rotate(0deg) translateX(80px) rotate(0deg); opacity: 0.8; }
+            50%  { opacity: 0.3; }
+            100% { transform: rotate(360deg) translateX(80px) rotate(-360deg); opacity: 0.8; }
         }
 
         @keyframes orbSpin {
@@ -1160,18 +1315,41 @@
         }
 
         @keyframes orbPulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 60px rgba(99, 210, 255, 0.2); }
-            50% { transform: scale(1.04); box-shadow: 0 0 90px rgba(99, 210, 255, 0.35); }
+            0%, 100% { 
+                transform: scale(1); 
+                box-shadow: 
+                    0 0 40px rgba(99, 210, 255, 0.25),
+                    0 0 80px rgba(99, 210, 255, 0.08),
+                    inset 0 0 30px rgba(99, 210, 255, 0.1);
+            }
+            50% { 
+                transform: scale(1.05); 
+                box-shadow: 
+                    0 0 60px rgba(99, 210, 255, 0.35),
+                    0 0 120px rgba(99, 210, 255, 0.12),
+                    inset 0 0 40px rgba(99, 210, 255, 0.15);
+            }
         }
 
+        /* Listening state — intensify */
         .live-orb.listening {
-            animation: orbListen 0.5s infinite alternate;
+            animation: orbListen 0.6s infinite alternate;
+            border-color: rgba(99, 210, 255, 0.5);
         }
-        .live-orb.listening::after { animation-duration: 0.5s; }
+
+        .live-orb.listening::after { 
+            animation-duration: 0.5s; 
+            border-top-color: rgba(99, 210, 255, 1);
+        }
+
+        .live-orb.listening ~ .orb-ring-outer {
+            border-color: rgba(167, 139, 250, 0.5);
+            animation-duration: 2s;
+        }
 
         @keyframes orbListen {
-            from { transform: scale(1); }
-            to { transform: scale(1.08); }
+            from { transform: scale(1); filter: brightness(1); }
+            to { transform: scale(1.1); filter: brightness(1.15); }
         }
 
         .live-status {
@@ -1529,8 +1707,9 @@
             }
 
             #sidebarOverlay.show { display: block; }
-            #menuBtn { display: flex; }
+            #menuBtn { display: flex; border: none; }
             .sidebar-close { display: block; }
+            #sidebar.collapsed { margin-left: 0; transform: translateX(-100%); }
 
             .admin-grid { grid-template-columns: 1fr; }
             .modal-lg { max-height: 95vh; }
@@ -1681,8 +1860,16 @@
         <div style="font-size:12px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:8px;opacity:0.6;">NEXUS LIVE</div>
         <div style="font-size:13px;color:var(--text-muted);">โหมดสนทนาแบบ Real-time</div>
     </div>
-    <div class="live-orb" id="liveOrb">
-        <i class="fa-solid fa-waveform-lines" id="liveOrbIcon"></i>
+    <div class="live-orb-container">
+        <div class="orb-hex-grid"></div>
+        <div class="orb-ring-outer"></div>
+        <div class="orb-particle"></div>
+        <div class="orb-particle"></div>
+        <div class="orb-particle"></div>
+        <div class="orb-particle"></div>
+        <div class="live-orb" id="liveOrb">
+            <i class="fa-solid fa-waveform-lines" id="liveOrbIcon"></i>
+        </div>
     </div>
     <div class="live-status" id="liveStatus">กดปุ่มไมค์เพื่อเริ่มพูด</div>
     <div class="live-transcript" id="liveTranscript"></div>
@@ -1876,12 +2063,22 @@ applyTheme(savedTheme !== 'light');
 function toggleSidebar() {
     const sb = document.getElementById('sidebar');
     const ov = document.getElementById('sidebarOverlay');
-    sb.classList.toggle('open');
-    ov.classList.toggle('show');
+    const isMobile = window.innerWidth <= 768;
+    
+    if (isMobile) {
+        // Mobile: slide-in overlay
+        sb.classList.toggle('open');
+        ov.classList.toggle('show');
+    } else {
+        // Desktop: collapse sidebar
+        sb.classList.toggle('collapsed');
+    }
 }
 
 function closeSidebar() {
-    document.getElementById('sidebar').classList.remove('open');
+    const sb = document.getElementById('sidebar');
+    sb.classList.remove('open');
+    sb.classList.remove('collapsed');
     document.getElementById('sidebarOverlay').classList.remove('show');
 }
 
@@ -2158,19 +2355,61 @@ renderer.code = function(code, lang) {
     </div>`;
 };
 
-// Custom image renderer — wrap in styled frame
+// Custom image renderer — wrap in styled frame with download button
 renderer.image = function(href, title, text) {
     const alt = text || title || 'AI Generated Image';
+    const imgId = 'img_' + Math.random().toString(36).substr(2, 8);
     return `<div class="ai-image-frame">
-        <img src="${href}" alt="${alt}" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<div style=\'padding:20px;text-align:center;color:var(--text-muted);font-size:13px;\'><i class=\'fa-solid fa-image-slash\' style=\'font-size:24px;margin-bottom:8px;display:block;\'></i>ไม่สามารถโหลดรูปภาพได้</div>';">
+        <img id="${imgId}" src="${href}" alt="${alt}" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<div style=\'padding:20px;text-align:center;color:var(--text-muted);font-size:13px;\'><i class=\'fa-solid fa-image-slash\' style=\'font-size:24px;margin-bottom:8px;display:block;\'></i>ไม่สามารถโหลดรูปภาพได้</div>';">
         <div class="ai-image-caption">
             <i class="fa-solid fa-palette"></i>
             <span>${alt}</span>
+            <div class="ai-image-actions">
+                <span class="img-quality-badge">4K</span>
+                <button class="img-download-btn" onclick="downloadAIImage('${imgId}', '${alt.replace(/'/g, '')}')">
+                    <i class="fa-solid fa-download"></i> ดาวน์โหลด
+                </button>
+            </div>
         </div>
     </div>`;
 };
 
 marked.use({ renderer });
+
+// === Download AI Image ===
+async function downloadAIImage(imgId, filename) {
+    const img = document.getElementById(imgId);
+    if (!img || !img.src) {
+        showToast('ไม่พบรูปภาพ', 'error');
+        return;
+    }
+    
+    try {
+        showToast('กำลังเตรียมดาวน์โหลดภาพ 4K...', 'info');
+        
+        const response = await fetch(img.src);
+        if (!response.ok) throw new Error('ไม่สามารถดาวน์โหลดได้');
+        
+        const blob = await response.blob();
+        const safeName = (filename || 'nexus-ai-image').replace(/[^a-zA-Z0-9ก-๙\s-]/g, '').trim().replace(/\s+/g, '-');
+        const ext = blob.type.includes('png') ? '.png' : '.jpg';
+        
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${safeName}-4K${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showToast('ดาวน์โหลดภาพ 4K สำเร็จ!', 'success');
+    } catch (e) {
+        // Fallback: open in new tab
+        window.open(img.src, '_blank');
+        showToast('เปิดภาพในแท็บใหม่ (กด Ctrl+S เพื่อบันทึก)', 'info');
+    }
+}
 
 function copyCode(id, btn) {
     const code = document.getElementById(id)?.innerText || '';
