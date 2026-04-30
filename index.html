@@ -583,6 +583,71 @@
             border-radius: var(--radius) var(--radius) var(--radius) 4px;
             width: 100%;
             max-width: 720px;
+            overflow: hidden;
+        }
+
+        /* === AI BUBBLE IMAGES (สร้างภาพ) === */
+        .ai-bubble img {
+            max-width: 100%;
+            max-height: 480px;
+            width: auto;
+            height: auto;
+            border-radius: 12px;
+            display: block;
+            margin: 10px auto;
+            object-fit: contain;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .ai-bubble img:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 32px rgba(99, 210, 255, 0.2);
+        }
+
+        /* Image wrapper for generated images */
+        .ai-image-frame {
+            position: relative;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: var(--bg-panel);
+            margin: 10px 0;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .ai-image-frame img {
+            width: 100%;
+            max-height: 480px;
+            object-fit: contain;
+            display: block;
+            border: none;
+            border-radius: 0;
+            margin: 0;
+            box-shadow: none;
+            background: linear-gradient(135deg, rgba(99,210,255,0.03), rgba(167,139,250,0.03));
+        }
+
+        .ai-image-frame img:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .ai-image-caption {
+            padding: 8px 12px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            background: var(--bg-panel);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ai-image-caption i {
+            color: var(--accent);
+            font-size: 11px;
         }
 
         /* AI response markdown */
@@ -2068,7 +2133,7 @@ marked.setOptions({
     gfm: true
 });
 
-// Custom renderer for code blocks
+// Custom renderer for code blocks and images
 const renderer = new marked.Renderer();
 renderer.code = function(code, lang) {
     const validLang = lang && hljs.getLanguage(lang) ? lang : 'plaintext';
@@ -2090,6 +2155,18 @@ renderer.code = function(code, lang) {
             </button>
         </div>
         <pre><code id="${id}" class="hljs language-${validLang}">${highlighted}</code></pre>
+    </div>`;
+};
+
+// Custom image renderer — wrap in styled frame
+renderer.image = function(href, title, text) {
+    const alt = text || title || 'AI Generated Image';
+    return `<div class="ai-image-frame">
+        <img src="${href}" alt="${alt}" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<div style=\'padding:20px;text-align:center;color:var(--text-muted);font-size:13px;\'><i class=\'fa-solid fa-image-slash\' style=\'font-size:24px;margin-bottom:8px;display:block;\'></i>ไม่สามารถโหลดรูปภาพได้</div>';">
+        <div class="ai-image-caption">
+            <i class="fa-solid fa-palette"></i>
+            <span>${alt}</span>
+        </div>
     </div>`;
 };
 
@@ -2791,7 +2868,7 @@ function renderAIContent(content, modelType) {
             <div style="display:flex;align-items:center;gap:7px;color:var(--accent);font-weight:600;margin-bottom:10px;">
                 <i class="fa-solid fa-palette"></i> ผลลัพธ์รูปภาพ (AI)
             </div>
-            <div style="background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:13px;color:var(--text-secondary);">${marked.parse(content)}</div>
+            <div style="font-size:13px;color:var(--text-secondary);">${marked.parse(content)}</div>
         </div>`;
     }
     if (modelType === 'code') {
@@ -2802,7 +2879,7 @@ function renderAIContent(content, modelType) {
             ${marked.parse(content)}
         </div>`;
     }
-    // Default: full markdown
+    // Default: full markdown (images will be wrapped by custom renderer)
     return marked.parse(content);
 }
 
