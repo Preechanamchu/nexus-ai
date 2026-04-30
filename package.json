@@ -1,0 +1,12 @@
+{
+  "name": "nexus-ai-platform",
+  "version": "1.0.0",
+  "description": "Nexus AI Platform integrated with Neon DB and Netlify Functions",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'Build process completed'"
+  },
+  "dependencies": {
+    "pg": "^8.11.3"
+  }
+}
