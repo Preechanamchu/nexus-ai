@@ -85,8 +85,13 @@ async function handleGoogleGemini(model, prompt, history, apiKey) {
 
   // Transform messages to Gemini format
   const contents = [];
+
+  // Add system instruction as first user message (Gemini doesn't have system role in contents)
+  // We use systemInstruction field instead
   if (history && history.length) {
     history.forEach(msg => {
+      // Skip system messages — handled via systemInstruction
+      if (msg.role === 'system') return;
       contents.push({
         role: msg.role === 'assistant' ? 'model' : 'user',
         parts: [{ text: msg.content }]
@@ -98,17 +103,22 @@ async function handleGoogleGemini(model, prompt, history, apiKey) {
     parts: [{ text: prompt }]
   });
 
+  const MAX_RETRIES = 5;
   let lastError = null;
-  for (let attempt = 0; attempt < 3; attempt++) {
+
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           contents,
+          systemInstruction: {
+            parts: [{ text: DEFAULT_SYSTEM_PROMPT }]
+          },
           generationConfig: {
             temperature: 0.7,
-            maxOutputTokens: 2048,
+            maxOutputTokens: 4096,
           }
         })
       });
@@ -119,44 +129,63 @@ async function handleGoogleGemini(model, prompt, history, apiKey) {
       try {
         data = JSON.parse(responseText);
       } catch (e) {
-        throw new Error('Google API returned invalid JSON response.');
+        throw new Error('ระบบได้รับข้อมูลที่ไม่ถูกต้องจาก Google API กรุณาลองใหม่อีกครั้ง');
       }
 
       if (data.error) {
         const status = data.error.status;
         const msg = data.error.message || '';
 
-        // Retry on "High Demand" (429/503) or "Internal Error"
-        if (status === 'UNAVAILABLE' || status === 'RESOURCE_EXHAUSTED' || msg.includes('high demand') || response.status === 429 || response.status === 503) {
-          console.warn(`[AI] Gemini High Demand (Attempt ${attempt + 1}/3): ${msg}`);
-          lastError = new Error(`Google API Error: ${msg} (กำลังรอคิวและลองใหม่...)`);
-          if (attempt < 2) {
-            await sleep(1500 * (attempt + 1)); // Exponential backoff
+        // Retry on Quota / Rate Limit / High Demand (429/503)
+        if (status === 'UNAVAILABLE' || status === 'RESOURCE_EXHAUSTED' || 
+            msg.includes('Quota exceeded') || msg.includes('high demand') || 
+            msg.includes('rate') || response.status === 429 || response.status === 503) {
+          
+          // Extract retry delay from error message if available
+          let retryDelay = 2000 * Math.pow(2, attempt); // Exponential: 2s, 4s, 8s, 16s, 32s
+          const retryMatch = msg.match(/retry in ([\d.]+)s/i);
+          if (retryMatch) {
+            retryDelay = Math.ceil(parseFloat(retryMatch[1]) * 1000) + 500;
+          }
+
+          console.warn(`[AI] Gemini Rate Limited (Attempt ${attempt + 1}/${MAX_RETRIES}): waiting ${retryDelay}ms`);
+          lastError = new Error(`⏳ ระบบมีผู้ใช้งานจำนวนมาก กำลังลองใหม่... (ครั้งที่ ${attempt + 1}/${MAX_RETRIES})`);
+          
+          if (attempt < MAX_RETRIES - 1) {
+            await sleep(retryDelay);
             continue;
           }
-          throw lastError;
+          // Final attempt failed
+          throw new Error('⚠️ โควต้าฟรีหมดแล้ว ตรวจสอบ สังกัด API KEY');
         }
 
         if (status === 'NOT_FOUND') {
-          throw new Error(`Google API Error: Model '${actualModelName}' not found. Please ensure the model name is correct (e.g., gemini-1.5-flash, gemini-1.5-pro).`);
+          throw new Error(`❌ ไม่พบโมเดล '${model.name}' กรุณาตรวจสอบชื่อโมเดลว่าถูกต้อง (เช่น gemini-2.0-flash, gemini-1.5-pro)`);
         }
         if (status === 'UNAUTHENTICATED' || status === 'PERMISSION_DENIED') {
-          throw new Error('Google API Error: Invalid API Key or Permission Denied.');
+          throw new Error('🔑 API Key ไม่ถูกต้อง หรือไม่มีสิทธิ์เข้าถึง กรุณาตรวจสอบ API Key ในหน้าแอดมิน');
         }
-        throw new Error(`Google API Error: ${msg || 'Unknown error'}`);
+        throw new Error(`❌ Google API Error: ${msg || 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ'}`);
       }
 
       if (data.candidates && data.candidates[0] && data.candidates[0].content) {
         return data.candidates[0].content.parts[0].text;
       }
       
-      console.error('[AI] Gemini response structure issue:', responseText);
-      throw new Error('Google API returned an empty or restricted response (Safety Filter).');
+      // Check for safety filter block
+      if (data.candidates && data.candidates[0] && data.candidates[0].finishReason === 'SAFETY') {
+        throw new Error('⚠️ คำตอบถูกบล็อกโดยระบบความปลอดภัยของ Google กรุณาลองถามด้วยคำถามอื่น');
+      }
+
+      console.error('[AI] Gemini response structure issue:', responseText.substring(0, 500));
+      throw new Error('⚠️ Google API ตอบกลับข้อมูลว่าง กรุณาลองใหม่อีกครั้ง');
 
     } catch (err) {
       lastError = err;
-      if (attempt === 2) throw err;
-      await sleep(1000);
+      // Don't retry on non-retryable errors
+      if (err.message.includes('❌') || err.message.includes('🔑')) throw err;
+      if (attempt === MAX_RETRIES - 1) throw err;
+      await sleep(1500 * (attempt + 1));
     }
   }
   throw lastError;
@@ -218,6 +247,19 @@ async function handleOpenAICompatible(model, prompt, history, apiKey) {
 
   if (data.error) {
     const errMsg = typeof data.error === 'string' ? data.error : (data.error.message || JSON.stringify(data.error));
+    const errCode = data.error?.code || data.error?.type || '';
+
+    // ตรวจจับ Quota / Rate Limit สำหรับทุก Provider
+    if (response.status === 429 || 
+        errCode === 'insufficient_quota' || 
+        errCode === 'rate_limit_exceeded' ||
+        errMsg.toLowerCase().includes('quota') || 
+        errMsg.toLowerCase().includes('rate limit') ||
+        errMsg.toLowerCase().includes('exceeded') ||
+        errMsg.toLowerCase().includes('billing')) {
+      throw new Error('⚠️ โควต้าฟรีหมดแล้ว ตรวจสอบ สังกัด API KEY');
+    }
+
     throw new Error(`${provider.toUpperCase()} API Error: ${errMsg}`);
   }
 
