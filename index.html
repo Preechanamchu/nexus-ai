@@ -447,6 +447,11 @@
             color: var(--accent);
         }
 
+        /* Force Sun icon to be white only */
+        .icon-btn .fa-sun {
+            color: #ffffff !important;
+        }
+
         /* ===== CHAT AREA ===== */
         #chatContainer {
             flex: 1;
@@ -1061,6 +1066,36 @@
             box-shadow: 0 0 60px rgba(99, 210, 255, 0.2), inset 0 0 40px rgba(99, 210, 255, 0.05);
             animation: orbPulse 3s infinite ease-in-out;
             position: relative;
+            /* Extra spinning effect for powerful communication */
+        }
+
+        .live-orb::after {
+            content: '';
+            position: absolute;
+            inset: -12px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            border-top: 2px solid var(--accent);
+            border-right: 2px solid var(--accent2);
+            animation: orbSpin 1.5s linear infinite;
+            filter: blur(1px);
+            opacity: 0.7;
+        }
+
+        .live-orb::before {
+            content: '';
+            position: absolute;
+            inset: -22px;
+            border-radius: 50%;
+            border: 1px solid transparent;
+            border-bottom: 1px solid var(--accent3);
+            animation: orbSpin 4s linear infinite reverse;
+            opacity: 0.4;
+        }
+
+        @keyframes orbSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         @keyframes orbPulse {
@@ -1071,6 +1106,7 @@
         .live-orb.listening {
             animation: orbListen 0.5s infinite alternate;
         }
+        .live-orb.listening::after { animation-duration: 0.5s; }
 
         @keyframes orbListen {
             from { transform: scale(1); }
@@ -2746,6 +2782,9 @@ async function typewriterAppendAI(rawContent, htmlContent) {
     const c = document.getElementById('chatContainer');
     const row = document.createElement('div');
     row.className = 'msg-row';
+    row.style.opacity = '0';
+    row.style.transform = 'translateY(10px)';
+    row.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
 
     const avatarHtml = `<div class="avatar ai-av"><img src="/favicon-96x96.png" style="width:22px;height:22px;border-radius:4px;object-fit:cover;" alt="AI"></div>`;
     const bubble = document.createElement('div');
@@ -2754,27 +2793,44 @@ async function typewriterAppendAI(rawContent, htmlContent) {
     row.innerHTML = avatarHtml;
     row.appendChild(bubble);
     c.appendChild(row);
+    
+    // Smooth fade-in for the row
+    requestAnimationFrame(() => {
+        row.style.opacity = '1';
+        row.style.transform = 'translateY(0)';
+    });
+
     scrollToBottom();
 
-    // คำนวณ speed ให้พอดี ~1.8 วินาที ไม่ว่าข้อความจะยาวแค่ไหน
-    const TICK_MS = 14;
-    const TARGET_TICKS = 130;
-    const chunkSize = Math.max(1, Math.ceil(rawContent.length / TARGET_TICKS));
+    // ปรับปรุงความสมูท: ใช้ TICK ที่ถี่ขึ้น และทยอยแสดงผล
+    const TICK_MS = 16; 
+    const CHARS_PER_TICK = Math.max(1, Math.ceil(rawContent.length / 80)); // แบ่งเป็น ~80 steps
 
     let i = 0;
     await new Promise(resolve => {
         function tick() {
             if (i < rawContent.length) {
-                i = Math.min(i + chunkSize, rawContent.length);
+                i = Math.min(i + CHARS_PER_TICK, rawContent.length);
                 const partial = rawContent.slice(0, i);
-                bubble.innerHTML = `<p style="white-space:pre-wrap;margin:0;">${escapeHtml(partial)}<span class="cursor-blink">▌</span></p>`;
-                scrollToBottom();
+                
+                // ใช้ textContent + cursor เพื่อความสมูทและลดกระตุก
+                bubble.innerHTML = `<p style="white-space:pre-wrap;margin:0;">${escapeHtml(partial)}<span class="cursor-blink" style="color:var(--accent)">▌</span></p>`;
+                
+                // เลื่อนหน้าจอแบบสมูท
+                c.scrollTop = c.scrollHeight;
+                
                 setTimeout(tick, TICK_MS);
             } else {
-                // เสร็จแล้ว: render HTML จริง ลบ cursor
-                bubble.innerHTML = htmlContent || `<p style="white-space:pre-wrap;margin:0;">${escapeHtml(rawContent)}</p>`;
-                scrollToBottom();
-                resolve();
+                // ขั้นตอนสุดท้าย: เปลี่ยนเป็น HTML ที่สมบูรณ์แบบพร้อมเอฟเฟกต์เฟด
+                bubble.style.transition = 'opacity 0.3s ease';
+                bubble.style.opacity = '0.5';
+                
+                setTimeout(() => {
+                    bubble.innerHTML = htmlContent || `<p style="white-space:pre-wrap;margin:0;">${escapeHtml(rawContent)}</p>`;
+                    bubble.style.opacity = '1';
+                    scrollToBottom();
+                    resolve();
+                }, 50);
             }
         }
         tick();
