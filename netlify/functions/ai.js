@@ -11,9 +11,19 @@ const pool = new Pool({
 });
 
 // --- Constants & Config ---
-const DEFAULT_SYSTEM_PROMPT = 'You are Nexus AI, a highly intelligent assistant. You can answer in any language the user uses.';
+const DEFAULT_SYSTEM_PROMPT = `You are Nexus AI, a highly intelligent assistant. 
+- If the user asks to create, generate, or draw an image (e.g., "สร้างภาพ...", "draw a..."), you MUST respond with a markdown image using this exact format: ![description](https://image.pollinations.ai/prompt/description?width=1024&height=1024&nologo=true&seed=RANDOM_NUMBER). 
+- Replace "description" with a detailed English prompt for the image. 
+- Replace "RANDOM_NUMBER" with a random number to ensure unique results.
+- Always provide a brief text description along with the image.
+- You can answer in any language the user uses.`;
 
 // --- Utility Functions ---
+
+/**
+ * Exponential Backoff Sleep
+ */
+const sleep = (ms) => new Promise(res => setTimeout(res, ms));
 
 /**
  * Map internal model names to actual provider model identifiers
@@ -24,9 +34,9 @@ function resolveModelName(model) {
 
   // Google Gemini
   if (provider.includes('google') || provider.includes('gemini')) {
-    // Use the model name exactly as entered by the user
-    // Just ensure the required "models/" prefix is present for the API URL
-    const cleanName = name.replace(/^models\//i, '');
+    // Check for common typos or futuristic names
+    let cleanName = name.replace(/^models\//i, '');
+    if (cleanName.includes('2.5')) cleanName = cleanName.replace('2.5', '1.5'); 
     return `models/${cleanName}`;
   }
 
@@ -65,7 +75,7 @@ function resolveModelName(model) {
 // --- Provider Handlers ---
 
 /**
- * Handle Google Gemini (Generative Language API)
+ * Handle Google Gemini (Generative Language API) with Retry Logic
  */
 async function handleGoogleGemini(model, prompt, history, apiKey) {
   const actualModelName = resolveModelName(model);
@@ -88,43 +98,68 @@ async function handleGoogleGemini(model, prompt, history, apiKey) {
     parts: [{ text: prompt }]
   });
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ 
-      contents,
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 2048,
+  let lastError = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          contents,
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 2048,
+          }
+        })
+      });
+
+      const responseText = await response.text();
+      let data;
+
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        throw new Error('Google API returned invalid JSON response.');
       }
-    })
-  });
 
-  const responseText = await response.text();
-  let data;
+      if (data.error) {
+        const status = data.error.status;
+        const msg = data.error.message || '';
 
-  try {
-    data = JSON.parse(responseText);
-  } catch (e) {
-    throw new Error('Google API returned invalid JSON response.');
-  }
+        // Retry on "High Demand" (429/503) or "Internal Error"
+        if (status === 'UNAVAILABLE' || status === 'RESOURCE_EXHAUSTED' || msg.includes('high demand') || response.status === 429 || response.status === 503) {
+          console.warn(`[AI] Gemini High Demand (Attempt ${attempt + 1}/3): ${msg}`);
+          lastError = new Error(`Google API Error: ${msg} (กำลังรอคิวและลองใหม่...)`);
+          if (attempt < 2) {
+            await sleep(1500 * (attempt + 1)); // Exponential backoff
+            continue;
+          }
+          throw lastError;
+        }
 
-  if (data.error) {
-    if (data.error.status === 'NOT_FOUND') {
-      throw new Error(`Google API Error: Model '${actualModelName}' not found. Please ensure the model name is correct (e.g., gemini-2.0-flash, gemini-2.5-flash-preview-04-17).`);
+        if (status === 'NOT_FOUND') {
+          throw new Error(`Google API Error: Model '${actualModelName}' not found. Please ensure the model name is correct (e.g., gemini-1.5-flash, gemini-1.5-pro).`);
+        }
+        if (status === 'UNAUTHENTICATED' || status === 'PERMISSION_DENIED') {
+          throw new Error('Google API Error: Invalid API Key or Permission Denied.');
+        }
+        throw new Error(`Google API Error: ${msg || 'Unknown error'}`);
+      }
+
+      if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+        return data.candidates[0].content.parts[0].text;
+      }
+      
+      console.error('[AI] Gemini response structure issue:', responseText);
+      throw new Error('Google API returned an empty or restricted response (Safety Filter).');
+
+    } catch (err) {
+      lastError = err;
+      if (attempt === 2) throw err;
+      await sleep(1000);
     }
-    if (data.error.status === 'UNAUTHENTICATED' || data.error.status === 'PERMISSION_DENIED') {
-      throw new Error('Google API Error: Invalid API Key or Permission Denied.');
-    }
-    throw new Error(`Google API Error: ${data.error.message || 'Unknown error'}`);
   }
-
-  if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-    return data.candidates[0].content.parts[0].text;
-  }
-  
-  console.error('[AI] Gemini response structure issue:', responseText);
-  throw new Error('Google API returned an empty or restricted response (Safety Filter).');
+  throw lastError;
 }
 
 /**
