@@ -52,21 +52,21 @@
         }
 
         .light {
-            --bg-base: #ffffff;
+            --bg-base: #f0f4f8;
             --bg-panel: #ffffff;
-            --bg-card: #ffffff;
-            --bg-hover: #f1f5f9;
-            --border: rgba(0, 0, 0, 0.08);
-            --border-accent: rgba(0, 0, 0, 0.2);
-            --accent: #000000;
-            --accent2: #4f46e5;
-            --accent3: #10b981;
-            --text-primary: #000000;
-            --text-secondary: #334155;
-            --text-muted: #64748b;
-            --user-bubble: linear-gradient(135deg, #000000, #333333);
-            --ai-bubble: #f1f5f9;
-            --shadow-glow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            --bg-card: #f8fafc;
+            --bg-hover: #e8f0f7;
+            --border: rgba(30, 80, 130, 0.12);
+            --border-accent: rgba(30, 80, 130, 0.35);
+            --accent: #1d6fa5;
+            --accent2: #7c3aed;
+            --accent3: #059669;
+            --text-primary: #0f1923;
+            --text-secondary: #4a6278;
+            --text-muted: #94aebf;
+            --user-bubble: linear-gradient(135deg, #1d4ed8, #3b82f6);
+            --ai-bubble: #ffffff;
+            --shadow-glow: 0 4px 20px rgba(30, 80, 130, 0.08);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -447,10 +447,6 @@
             color: var(--accent);
         }
 
-        /* Force Sun icon to be white only */
-        .icon-btn .fa-sun {
-            color: #ffffff !important;
-        }
 
         /* ===== CHAT AREA ===== */
         #chatContainer {
@@ -1503,11 +1499,11 @@
         <svg class="logo-mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect width="40" height="40" rx="10" fill="rgba(99,210,255,0.08)"/>
             <!-- Hexagon grid -->
-            <polygon points="20,4 32,11 32,25 20,32 8,25 8,11" stroke="var(--accent)" stroke-width="1.2" fill="none" opacity="0.4"/>
+            <polygon points="20,4 32,11 32,25 20,32 8,25 8,11" stroke="#63d2ff" stroke-width="1.2" fill="none" opacity="0.4"/>
             <!-- Inner hex -->
-            <polygon points="20,10 27,14 27,22 20,26 13,22 13,14" stroke="var(--accent)" stroke-width="1.2" fill="rgba(99,210,255,0.06)"/>
+            <polygon points="20,10 27,14 27,22 20,26 13,22 13,14" stroke="#63d2ff" stroke-width="1.2" fill="rgba(99,210,255,0.06)"/>
             <!-- N letter paths -->
-            <path d="M15 27 L15 13 L22 24 L22 13" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M15 27 L15 13 L22 24 L22 13" stroke="#63d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             <circle cx="33" cy="7" r="3" fill="#a78bfa" opacity="0.8"/>
             <circle cx="7" cy="33" r="2" fill="#34d399" opacity="0.6"/>
         </svg>
@@ -1564,9 +1560,9 @@
             <div class="welcome-logo">
                 <svg width="72" height="72" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <rect width="40" height="40" rx="10" fill="rgba(99,210,255,0.08)"/>
-                    <polygon points="20,4 32,11 32,25 20,32 8,25 8,11" stroke="var(--accent)" stroke-width="1.2" fill="none" opacity="0.4"/>
-                    <polygon points="20,10 27,14 27,22 20,26 13,22 13,14" stroke="var(--accent)" stroke-width="1.2" fill="rgba(99,210,255,0.06)"/>
-                    <path d="M15 27 L15 13 L22 24 L22 13" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polygon points="20,4 32,11 32,25 20,32 8,25 8,11" stroke="#63d2ff" stroke-width="1.2" fill="none" opacity="0.4"/>
+                    <polygon points="20,10 27,14 27,22 20,26 13,22 13,14" stroke="#63d2ff" stroke-width="1.2" fill="rgba(99,210,255,0.06)"/>
+                    <path d="M15 27 L15 13 L22 24 L22 13" stroke="#63d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     <circle cx="33" cy="7" r="3" fill="#a78bfa" opacity="0.8"/>
                     <circle cx="7" cy="33" r="2" fill="#34d399" opacity="0.6"/>
                 </svg>
@@ -1781,25 +1777,8 @@ let currentMode = 'chat';
 function applyTheme(isDark) {
     document.documentElement.classList.toggle('dark', isDark);
     document.documentElement.classList.toggle('light', !isDark);
-    
-    if (!isDark) {
-        // Clear system theme overrides to ensure pure white in light mode
-        document.documentElement.style.removeProperty('--bg-base');
-        document.documentElement.style.removeProperty('--bg-panel');
-        document.documentElement.style.removeProperty('--bg-card');
-        document.documentElement.style.removeProperty('--accent');
-    } else {
-        // Restore custom system theme if set
-        const sysThemeIdx = localStorage.getItem('sysTheme');
-        if (sysThemeIdx !== null) {
-            setSystemTheme(parseInt(sysThemeIdx), null);
-        }
-    }
-    
     const icon = document.querySelector('#themeBtn i');
-    if (icon) {
-        icon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
-    }
+    icon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
 }
 
