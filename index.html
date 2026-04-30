@@ -1011,7 +1011,7 @@
             transform: scale(1.05);
         }
 
-        .theme-5-grid {
+        .theme-grid {
             grid-template-columns: repeat(5, 1fr);
         }
 
@@ -1726,8 +1726,8 @@
                     </div>
                 </div>
                 <div class="setting-item">
-                    <div class="setting-label">3. ปรับธีมระบบ (5 แบบ)</div>
-                    <div class="options-grid theme-5-grid" id="systemThemeOptions">
+                    <div class="setting-label">3. ปรับธีมระบบมืออาชีพ (10 แบบ)</div>
+                    <div class="options-grid theme-grid" id="systemThemeOptions">
                         <!-- JS generated -->
                     </div>
                 </div>
@@ -1865,13 +1865,18 @@ function initSettingsOptions() {
              style="background:${color}" onclick="setBtnColor('${color}', this)"></div>
     `).join('');
 
-    // System Themes (5) — สี 5 แบบที่กำหนด
+    // System Themes (10) — ปรับให้ดูเป็นมืออาชีพ สะบายตา
     const sysThemeDefs = [
-        { name: 'Aqua',  bg: '#0d2626', panel: '#112e2e', accent: '#b5f4f2' },
-        { name: 'Mint',  bg: '#0d2618', panel: '#112e1e', accent: '#90f2b1' },
-        { name: 'Sand',  bg: '#261e0d', panel: '#2e2511', accent: '#eecf9c' },
-        { name: 'Lime',  bg: '#1a2608', panel: '#1f2e09', accent: '#cee48a' },
-        { name: 'Rose',  bg: '#261020', panel: '#2e1228', accent: '#f1bee3' }
+        { name: 'Slate Blue',  bg: '#0f172a', panel: '#1e293b', accent: '#38bdf8' },
+        { name: 'Emerald Soft', bg: '#064e3b', panel: '#065f46', accent: '#34d399' },
+        { name: 'Lavender Mist', bg: '#2e1065', panel: '#4c1d95', accent: '#a78bfa' },
+        { name: 'Steel Grey',  bg: '#111827', panel: '#1f2937', accent: '#9ca3af' },
+        { name: 'Soft Crimson', bg: '#450a0a', panel: '#7f1d1d', accent: '#f87171' },
+        { name: 'Oceanic',     bg: '#172554', panel: '#1e3a8a', accent: '#60a5fa' },
+        { name: 'Olive Drab',  bg: '#1a2e05', panel: '#365314', accent: '#a3e635' },
+        { name: 'Coffee Rich', bg: '#271709', panel: '#451a03', accent: '#fbbf24' },
+        { name: 'Slate Violet', bg: '#1e1b4b', panel: '#312e81', accent: '#818cf8' },
+        { name: 'Charcoal Teal', bg: '#134e4a', panel: '#115e59', accent: '#2dd4bf' }
     ];
     const sysGrid = document.getElementById('systemThemeOptions');
     sysGrid.innerHTML = sysThemeDefs.map((theme, i) => `
@@ -1912,11 +1917,16 @@ function setBtnColor(color, el) {
 
 function setSystemTheme(index, el) {
     const sysThemeDefs = [
-        { bg: '#0d2626', panel: '#112e2e', card: '#163535', accent: '#b5f4f2' },
-        { bg: '#0d2618', panel: '#112e1e', card: '#163824', accent: '#90f2b1' },
-        { bg: '#261e0d', panel: '#2e2511', card: '#382c14', accent: '#eecf9c' },
-        { bg: '#1a2608', panel: '#1f2e09', card: '#26380b', accent: '#cee48a' },
-        { bg: '#261020', panel: '#2e1228', card: '#3a1531', accent: '#f1bee3' }
+        { name: 'Slate Blue',  bg: '#0f172a', panel: '#1e293b', card: '#334155', accent: '#38bdf8' },
+        { name: 'Emerald Soft', bg: '#064e3b', panel: '#065f46', card: '#047857', accent: '#34d399' },
+        { name: 'Lavender Mist', bg: '#2e1065', panel: '#4c1d95', card: '#5b21b6', accent: '#a78bfa' },
+        { name: 'Steel Grey',  bg: '#111827', panel: '#1f2937', card: '#374151', accent: '#9ca3af' },
+        { name: 'Soft Crimson', bg: '#450a0a', panel: '#7f1d1d', card: '#991b1b', accent: '#f87171' },
+        { name: 'Oceanic',     bg: '#172554', panel: '#1e3a8a', card: '#1e40af', accent: '#60a5fa' },
+        { name: 'Olive Drab',  bg: '#1a2e05', panel: '#365314', card: '#3f6212', accent: '#a3e635' },
+        { name: 'Coffee Rich', bg: '#271709', panel: '#451a03', card: '#78350f', accent: '#fbbf24' },
+        { name: 'Slate Violet', bg: '#1e1b4b', panel: '#312e81', card: '#3730a3', accent: '#818cf8' },
+        { name: 'Charcoal Teal', bg: '#134e4a', panel: '#115e59', card: '#0f766e', accent: '#2dd4bf' }
     ];
     const theme = sysThemeDefs[index];
     document.documentElement.style.setProperty('--bg-base', theme.bg);
