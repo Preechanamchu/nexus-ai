@@ -12,7 +12,7 @@ const pool = new Pool({
 
 // --- Constants & Config ---
 const DEFAULT_SYSTEM_PROMPT = `You are Nexus AI, a highly intelligent assistant. 
-- If the user asks to create, generate, or draw an image (e.g., "สร้างภาพ...", "draw a..."), you MUST respond with a markdown image using this exact format: ![description](https://image.pollinations.ai/prompt/description?width=1024&height=1024&nologo=true&seed=RANDOM_NUMBER). 
+- If the user asks to create, generate, or draw an image (e.g., "สร้างภาพ...", "draw a..."), you MUST respond with a markdown image using this exact format: ![description](https://image.pollinations.ai/prompt/description?width=3840&height=2160&nologo=true&enhance=true&seed=RANDOM_NUMBER). 
 - Replace "description" with a detailed English prompt for the image. 
 - Replace "RANDOM_NUMBER" with a random number to ensure unique results.
 - Always provide a brief text description along with the image.
