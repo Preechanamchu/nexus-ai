@@ -640,6 +640,68 @@
             font-size: 12.5px;
         }
 
+        /* Image Container & Download Button */
+        .ai-img-container {
+            position: relative;
+            margin: 14px 0;
+            width: 100%;
+            max-width: 600px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--bg-panel);
+        }
+
+        .ai-img-container:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+            border-color: var(--border-accent);
+        }
+
+        .ai-img-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+            cursor: zoom-in;
+            transition: opacity 0.3s;
+        }
+
+        .img-download-btn {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(7, 11, 20, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 9px 16px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.25s;
+            opacity: 0;
+            transform: translateY(15px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 5;
+        }
+
+        .ai-img-container:hover .img-download-btn {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .img-download-btn:hover {
+            background: var(--accent);
+            color: #070b14;
+            border-color: var(--accent);
+            transform: scale(1.05);
+        }
+
         /* Code blocks */
         .code-block-wrapper {
             margin: 10px 0;
@@ -1758,6 +1820,42 @@
 // ===== CONFIG =====
 const ADMIN_PIN = '210406';
 const MAX_HISTORY_MSGS = 24;
+
+// ===== MARKED RENDERER CUSTOMIZATION =====
+const renderer = new marked.Renderer();
+renderer.image = function(href, title, text) {
+    const isAiImage = href.includes('pollinations.ai');
+    return `
+        <div class="ai-img-container">
+            <img src="${href}" alt="${text}" title="${title || ''}" loading="lazy" onclick="window.open('${href}', '_blank')">
+            <button class="img-download-btn" onclick="downloadImage('${href}', '${text || 'nexus-ai-image'}')" title="ดาวน์โหลดภาพ 4K">
+                <i class="fa-solid fa-download"></i> ดาวน์โหลด 4K
+            </button>
+        </div>
+    `;
+};
+marked.setOptions({ renderer: renderer });
+
+async function downloadImage(url, filename) {
+    try {
+        showToast('กำลังเตรียมการดาวน์โหลด...', 'info');
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = filename.replace(/[^\w\u0E00-\u0E7F]+/g, '-').toLowerCase() + '.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+        showToast('ดาวน์โหลดภาพสำเร็จ', 'success');
+    } catch (e) {
+        console.error('Download failed:', e);
+        window.open(url, '_blank');
+        showToast('เปิดภาพในแท็บใหม่เพื่อบันทึกด้วยตนเอง', 'info');
+    }
+}
 
 // ===== STATE =====
 let savedModels = [];
