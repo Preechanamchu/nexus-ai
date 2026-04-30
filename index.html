@@ -1499,11 +1499,11 @@
         <svg class="logo-mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect width="40" height="40" rx="10" fill="rgba(99,210,255,0.08)"/>
             <!-- Hexagon grid -->
-            <polygon points="20,4 32,11 32,25 20,32 8,25 8,11" stroke="#63d2ff" stroke-width="1.2" fill="none" opacity="0.4"/>
+            <polygon points="20,4 32,11 32,25 20,32 8,25 8,11" stroke="var(--accent)" stroke-width="1.2" fill="none" opacity="0.4"/>
             <!-- Inner hex -->
-            <polygon points="20,10 27,14 27,22 20,26 13,22 13,14" stroke="#63d2ff" stroke-width="1.2" fill="rgba(99,210,255,0.06)"/>
+            <polygon points="20,10 27,14 27,22 20,26 13,22 13,14" stroke="var(--accent)" stroke-width="1.2" fill="rgba(99,210,255,0.06)"/>
             <!-- N letter paths -->
-            <path d="M15 27 L15 13 L22 24 L22 13" stroke="#63d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M15 27 L15 13 L22 24 L22 13" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             <circle cx="33" cy="7" r="3" fill="#a78bfa" opacity="0.8"/>
             <circle cx="7" cy="33" r="2" fill="#34d399" opacity="0.6"/>
         </svg>
@@ -1560,9 +1560,9 @@
             <div class="welcome-logo">
                 <svg width="72" height="72" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <rect width="40" height="40" rx="10" fill="rgba(99,210,255,0.08)"/>
-                    <polygon points="20,4 32,11 32,25 20,32 8,25 8,11" stroke="#63d2ff" stroke-width="1.2" fill="none" opacity="0.4"/>
-                    <polygon points="20,10 27,14 27,22 20,26 13,22 13,14" stroke="#63d2ff" stroke-width="1.2" fill="rgba(99,210,255,0.06)"/>
-                    <path d="M15 27 L15 13 L22 24 L22 13" stroke="#63d2ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polygon points="20,4 32,11 32,25 20,32 8,25 8,11" stroke="var(--accent)" stroke-width="1.2" fill="none" opacity="0.4"/>
+                    <polygon points="20,10 27,14 27,22 20,26 13,22 13,14" stroke="var(--accent)" stroke-width="1.2" fill="rgba(99,210,255,0.06)"/>
+                    <path d="M15 27 L15 13 L22 24 L22 13" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     <circle cx="33" cy="7" r="3" fill="#a78bfa" opacity="0.8"/>
                     <circle cx="7" cy="33" r="2" fill="#34d399" opacity="0.6"/>
                 </svg>
@@ -1777,8 +1777,25 @@ let currentMode = 'chat';
 function applyTheme(isDark) {
     document.documentElement.classList.toggle('dark', isDark);
     document.documentElement.classList.toggle('light', !isDark);
+    
+    if (isDark) {
+        // โหมดมืด: ล้างการตั้งค่ากำหนดเองทั้งหมดเพื่อใช้สีดำมาตรฐาน (ตัวหนังสือขาว) เหมือนโปรแกรมทั่วไป
+        const props = ['--bg-base', '--bg-panel', '--bg-card', '--accent', '--text-primary', '--text-secondary', '--text-muted', '--border'];
+        props.forEach(p => document.documentElement.style.removeProperty(p));
+    } else {
+        // โหมดสว่าง: ใช้ธีมที่ผู้ใช้งานตั้งค่าไว้ (10 แบบสีอ่อน)
+        const sysThemeIdx = localStorage.getItem('sysTheme');
+        if (sysThemeIdx !== null) {
+            setSystemTheme(parseInt(sysThemeIdx), null);
+        } else {
+            setSystemTheme(0, null); // ธีมแรกเป็นค่าเริ่มต้น
+        }
+    }
+    
     const icon = document.querySelector('#themeBtn i');
-    icon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+    if (icon) {
+        icon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+    }
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
 }
 
