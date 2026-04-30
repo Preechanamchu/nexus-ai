@@ -1865,18 +1865,18 @@ function initSettingsOptions() {
              style="background:${color}" onclick="setBtnColor('${color}', this)"></div>
     `).join('');
 
-    // System Themes (10) — ปรับให้ดูเป็นมืออาชีพ สะบายตา
+    // System Themes (10) — ปรับให้เป็นสีอ่อนมากๆ สะบายตา
     const sysThemeDefs = [
-        { name: 'Slate Blue',  bg: '#0f172a', panel: '#1e293b', accent: '#38bdf8' },
-        { name: 'Emerald Soft', bg: '#064e3b', panel: '#065f46', accent: '#34d399' },
-        { name: 'Lavender Mist', bg: '#2e1065', panel: '#4c1d95', accent: '#a78bfa' },
-        { name: 'Steel Grey',  bg: '#111827', panel: '#1f2937', accent: '#9ca3af' },
-        { name: 'Soft Crimson', bg: '#450a0a', panel: '#7f1d1d', accent: '#f87171' },
-        { name: 'Oceanic',     bg: '#172554', panel: '#1e3a8a', accent: '#60a5fa' },
-        { name: 'Olive Drab',  bg: '#1a2e05', panel: '#365314', accent: '#a3e635' },
-        { name: 'Coffee Rich', bg: '#271709', panel: '#451a03', accent: '#fbbf24' },
-        { name: 'Slate Violet', bg: '#1e1b4b', panel: '#312e81', accent: '#818cf8' },
-        { name: 'Charcoal Teal', bg: '#134e4a', panel: '#115e59', accent: '#2dd4bf' }
+        { name: 'Slate Light', bg: '#f8fafc', panel: '#ffffff', accent: '#38bdf8' },
+        { name: 'Emerald Light', bg: '#f0fdf4', panel: '#ffffff', accent: '#10b981' },
+        { name: 'Lavender Light', bg: '#f5f3ff', panel: '#ffffff', accent: '#8b5cf6' },
+        { name: 'Steel Light', bg: '#f1f5f9', panel: '#ffffff', accent: '#64748b' },
+        { name: 'Rose Light', bg: '#fff1f2', panel: '#ffffff', accent: '#f43f5e' },
+        { name: 'Ocean Light', bg: '#eff6ff', panel: '#ffffff', accent: '#3b82f6' },
+        { name: 'Olive Light', bg: '#f7fee7', panel: '#ffffff', accent: '#84cc16' },
+        { name: 'Amber Light', bg: '#fffbeb', panel: '#ffffff', accent: '#f59e0b' },
+        { name: 'Indigo Light', bg: '#eef2ff', panel: '#ffffff', accent: '#6366f1' },
+        { name: 'Cyan Light', bg: '#ecfeff', panel: '#ffffff', accent: '#06b6d4' }
     ];
     const sysGrid = document.getElementById('systemThemeOptions');
     sysGrid.innerHTML = sysThemeDefs.map((theme, i) => `
@@ -1917,22 +1917,29 @@ function setBtnColor(color, el) {
 
 function setSystemTheme(index, el) {
     const sysThemeDefs = [
-        { name: 'Slate Blue',  bg: '#0f172a', panel: '#1e293b', card: '#334155', accent: '#38bdf8' },
-        { name: 'Emerald Soft', bg: '#064e3b', panel: '#065f46', card: '#047857', accent: '#34d399' },
-        { name: 'Lavender Mist', bg: '#2e1065', panel: '#4c1d95', card: '#5b21b6', accent: '#a78bfa' },
-        { name: 'Steel Grey',  bg: '#111827', panel: '#1f2937', card: '#374151', accent: '#9ca3af' },
-        { name: 'Soft Crimson', bg: '#450a0a', panel: '#7f1d1d', card: '#991b1b', accent: '#f87171' },
-        { name: 'Oceanic',     bg: '#172554', panel: '#1e3a8a', card: '#1e40af', accent: '#60a5fa' },
-        { name: 'Olive Drab',  bg: '#1a2e05', panel: '#365314', card: '#3f6212', accent: '#a3e635' },
-        { name: 'Coffee Rich', bg: '#271709', panel: '#451a03', card: '#78350f', accent: '#fbbf24' },
-        { name: 'Slate Violet', bg: '#1e1b4b', panel: '#312e81', card: '#3730a3', accent: '#818cf8' },
-        { name: 'Charcoal Teal', bg: '#134e4a', panel: '#115e59', card: '#0f766e', accent: '#2dd4bf' }
+        { name: 'Slate Light', bg: '#f8fafc', panel: '#ffffff', card: '#ffffff', accent: '#38bdf8' },
+        { name: 'Emerald Light', bg: '#f0fdf4', panel: '#ffffff', card: '#ffffff', accent: '#10b981' },
+        { name: 'Lavender Light', bg: '#f5f3ff', panel: '#ffffff', card: '#ffffff', accent: '#8b5cf6' },
+        { name: 'Steel Light', bg: '#f1f5f9', panel: '#ffffff', card: '#ffffff', accent: '#64748b' },
+        { name: 'Rose Light', bg: '#fff1f2', panel: '#ffffff', card: '#ffffff', accent: '#f43f5e' },
+        { name: 'Ocean Light', bg: '#eff6ff', panel: '#ffffff', card: '#ffffff', accent: '#3b82f6' },
+        { name: 'Olive Light', bg: '#f7fee7', panel: '#ffffff', card: '#ffffff', accent: '#84cc16' },
+        { name: 'Amber Light', bg: '#fffbeb', panel: '#ffffff', card: '#ffffff', accent: '#f59e0b' },
+        { name: 'Indigo Light', bg: '#eef2ff', panel: '#ffffff', card: '#ffffff', accent: '#6366f1' },
+        { name: 'Cyan Light', bg: '#ecfeff', panel: '#ffffff', card: '#ffffff', accent: '#06b6d4' }
     ];
     const theme = sysThemeDefs[index];
     document.documentElement.style.setProperty('--bg-base', theme.bg);
     document.documentElement.style.setProperty('--bg-panel', theme.panel);
     document.documentElement.style.setProperty('--bg-card', theme.card);
     document.documentElement.style.setProperty('--accent', theme.accent);
+    
+    // ตั้งค่าสีตัวหนังสือให้เข้มสำหรับธีมสีอ่อน
+    document.documentElement.style.setProperty('--text-primary', '#1e293b');
+    document.documentElement.style.setProperty('--text-secondary', '#475569');
+    document.documentElement.style.setProperty('--text-muted', '#94a3b8');
+    document.documentElement.style.setProperty('--border', 'rgba(0,0,0,0.08)');
+    
     document.querySelectorAll('#systemThemeOptions .option-box').forEach(b => b.classList.remove('active'));
     if (el) el.classList.add('active');
     localStorage.setItem('sysTheme', index);
